@@ -15,8 +15,8 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
 
         public IEnumerable<Fundo> ObterTodos()
         {
-            return _contexto.Fundos
-            .Include(f => f.TipoFundo)
+           return _contexto.Fundo
+            .Include(f => f.Tipo_Fundo)
             .ToList();
         }
     }
