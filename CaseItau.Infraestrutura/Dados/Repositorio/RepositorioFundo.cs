@@ -1,5 +1,5 @@
 ﻿using CaseItau.Dominio.Entidades;
-using CaseItau.Dominio.Interfaces;
+using CaseItau.Dominio.Interfaces.Repositorios;
 using Microsoft.EntityFrameworkCore;
 
 namespace CaseItau.Infraestrutura.Dados.Repositorio
@@ -18,6 +18,41 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
            return _contexto.Fundo
             .Include(f => f.Tipo_Fundo)
             .ToList();
+        }
+        public async Task<Fundo>ObterFundoPorCodigo(string codigo)
+        {
+            return _contexto.Fundo
+             .Include(tp => tp.Tipo_Fundo)
+             .Where(f => f.Codigo == codigo).FirstOrDefault();
+        }
+        public async Task IncluirFundo(Fundo fundo)
+        {
+            await _contexto.Fundo.AddAsync(fundo);
+            await _contexto.SaveChangesAsync();
+        }
+        public async Task AlterarFundo(Fundo fundo)
+        {
+            _contexto.Fundo.Update(fundo);
+            await _contexto.SaveChangesAsync();
+        }
+        public async Task ExcluirFundo(string codigo)
+        {
+            var fundo = await _contexto.Fundo.FindAsync(codigo);
+            if (fundo != null)
+            {
+                _contexto.Fundo.Remove(fundo);
+                await _contexto.SaveChangesAsync();
+            }
+        }
+        public async Task AtualizarPatrimonio(string codigo, decimal valor)
+        {
+            var fundo = await _contexto.Fundo.FindAsync(codigo);
+            if (fundo != null)
+            {
+                fundo.Patrimonio += valor;
+                _contexto.Fundo.Update(fundo);
+                await _contexto.SaveChangesAsync();
+            }
         }
     }
 }
