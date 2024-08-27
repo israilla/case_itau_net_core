@@ -78,9 +78,7 @@ namespace CaseItau.Dominio.Servicos
         }
         public async Task<Fundo> ObterFundoPorCnpj(string cnpj)
         {
-            var fundo = await _repositorioFundo.ObterFundoPorCnpj(cnpj);
-
-            return fundo;
+            return await _repositorioFundo.ObterFundoPorCnpj(cnpj);
         }
     }
 }

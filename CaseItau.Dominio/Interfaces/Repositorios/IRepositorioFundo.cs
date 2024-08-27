@@ -10,5 +10,6 @@ namespace CaseItau.Dominio.Interfaces.Repositorios
         Task AlterarFundo(Fundo fundo);
         Task ExcluirFundo(string codigo);
         Task AtualizarPatrimonio(string codigo, decimal valor);
+        Task<Fundo> ObterFundoPorCnpj(string cnpj);
     }
 }

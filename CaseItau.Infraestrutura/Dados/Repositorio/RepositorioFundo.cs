@@ -22,6 +22,7 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
         public async Task<Fundo>ObterFundoPorCodigo(string codigo)
         {
             return _contexto.Fundo
+             .AsNoTracking()
              .Include(tp => tp.Tipo_Fundo)
              .Where(f => f.Codigo == codigo).FirstOrDefault();
         }
@@ -53,6 +54,12 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
                 _contexto.Fundo.Update(fundo);
                 await _contexto.SaveChangesAsync();
             }
+        }
+        public async Task<Fundo> ObterFundoPorCnpj(string cnpj)
+        {
+            return _contexto.Fundo
+             .Include(tp => tp.Tipo_Fundo)
+             .Where(f => f.Cnpj == cnpj).FirstOrDefault();
         }
     }
 }
