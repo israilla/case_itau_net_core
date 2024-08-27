@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CaseItau.API.Model;
 using Microsoft.AspNetCore.Mvc;
-using System.Data.SQLite;
-using CaseItau.Dominio.Servicos;
-using entidade = CaseItau.Dominio.Entidades;
+using CaseItau.Dominio.Entidades;
+using CaseItau.Dominio.Interfaces.Servicos;
 
 namespace CaseItau.API.Controllers
 {
@@ -13,89 +11,90 @@ namespace CaseItau.API.Controllers
     [ApiController]
     public class FundoController : ControllerBase
     {
-        private readonly ServicoFundo _servicoFundo;
+        private readonly IServicoFundo _servicoFundo;
 
-        public FundoController(ServicoFundo servicoFundo)
+        public FundoController(IServicoFundo servicoFundo)
         {
             _servicoFundo = servicoFundo;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<entidade.Fundo>>> ObterFundos()
+        public async Task<ActionResult<IEnumerable<Fundo>>> ObterFundos()
         {
             var fundos = _servicoFundo.ObterTodos();
             return Ok(fundos);
         }
 
-        // GET: api/Fundo/ITAUTESTE01
-        [HttpGet("{codigo}", Name = "Get")]
-        public Fundo Get(string codigo)
+        [HttpGet("{codigo}", Name = "ObterFundosPorCodigo")]
+        public async Task<ActionResult<IEnumerable<Fundo>>> ObterFundosPorCodigo(string codigo)
         {
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT F.*, T.NOME AS NOME_TIPO FROM FUNDO F INNER JOIN TIPO_FUNDO T ON T.CODIGO = F.CODIGO_TIPO WHERE F.CODIGO = '" + codigo + "'";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                var f = new Fundo();
-                f.Codigo = reader[0].ToString();
-                f.Nome = reader[1].ToString();
-                f.Cnpj = reader[2].ToString();
-                f.CodigoTipo = int.Parse(reader[3].ToString());
-                f.Patrimonio = decimal.Parse(reader[4].ToString());
-                f.NomeTipo = reader[5].ToString();
-                return f;
-            }
-            return null;
+            var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
+
+            if (fundo != null)
+                return Ok(fundo);
+            else
+                throw new Exception("Fundo não encontrado");
         }
 
-        // POST: api/Fundo
         [HttpPost]
-        public void Post([FromBody] Fundo value)
+        public async Task<IActionResult> IncluirFundo([FromBody] Fundo fundo)
         {
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "INSERT INTO FUNDO VALUES('" + value.Codigo + "','" + value.Nome + "','" + value.Cnpj + "',"+value.CodigoTipo.ToString() + ",NULL)";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var resultado = cmd.ExecuteNonQuery();
+            if (fundo == null)
+                return BadRequest("Por favor, informar os dados para adicionar um novo fundo.");
+
+            await _servicoFundo.IncluirFundo(fundo);
+
+            return Ok("Fundo adicionado com sucesso!");
         }
 
-        // PUT: api/Fundo/ITAUTESTE01
         [HttpPut("{codigo}")]
-        public void Put(string codigo, [FromBody] Fundo value)
+        public async Task<IActionResult> AlterarFundo(string codigo, [FromBody] Fundo fundoPesquisa)
         {
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE FUNDO SET Nome = '" + value.Nome + "', CNPJ = '" + value.Cnpj + "', CODIGO_TIPO = " + value.CodigoTipo + " WHERE CODIGO = '" + codigo + "'";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var resultado = cmd.ExecuteNonQuery();
+            if (fundoPesquisa == null || codigo != fundoPesquisa.Codigo)
+            {
+                return BadRequest("Os dados do Fundo estão inválidos.");
+            }
+
+            var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
+
+            if (fundo == null)
+                return NotFound("Fundo não encontrado.");
+
+            fundo.Nome = fundoPesquisa.Nome;
+            fundo.Cnpj = fundoPesquisa.Cnpj;
+            fundo.Codigo_Tipo = fundoPesquisa.Codigo_Tipo;
+
+            await _servicoFundo.AlterarFundo(fundo);
+
+            return Ok("Fundo alterado com sucesso!.");
         }
 
-        // DELETE: api/Fundo/ITAUTESTE01
         [HttpDelete("{codigo}")]
-        public void Delete(string codigo)
+        public async Task<IActionResult> ExcluirFundo(string codigo)
         {
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "DELETE FROM FUNDO WHERE CODIGO = '" + codigo + "'";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var resultado = cmd.ExecuteNonQuery();
+            var fundo =  await _servicoFundo.ObterFundoPorCodigo(codigo);
+            if (fundo == null)
+                return NotFound("Fundo não encontrado.");
+
+            await _servicoFundo.ExcluirFundo(codigo);
+
+            return Ok("Fundo excluído com sucesso.");
         }
 
         [HttpPut("{codigo}/patrimonio")]
-        public void MovimentarPatrimonio(string codigo, [FromBody] decimal value)
+        public async Task<IActionResult> MovimentarPatrimonio(string codigo, [FromBody] decimal valor)
         {
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE FUNDO SET PATRIMONIO = IFNULL(PATRIMONIO,0) + " + value.ToString() + " WHERE CODIGO = '" + codigo + "'";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var resultado = cmd.ExecuteNonQuery();
+            if (valor < 0)
+                return BadRequest("O valor não pode ser negativo.");
+
+            var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
+
+            if (fundo == null)
+                return NotFound("Fundo não encontrado.");
+
+            await _servicoFundo.AtualizarPatrimonio(codigo, valor);
+
+            return Ok("Patrimônio atualizado com sucesso.");
         }
     }
 }
