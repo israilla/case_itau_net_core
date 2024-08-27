@@ -49,7 +49,7 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
             var fundo = await _contexto.Fundo.FindAsync(codigo);
             if (fundo != null)
             {
-                fundo.Patrimonio += valor;
+                fundo.Patrimonio = (fundo.Patrimonio ?? 0) + valor;
                 _contexto.Fundo.Update(fundo);
                 await _contexto.SaveChangesAsync();
             }
