@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using CaseItau.Dominio.Entidades;
 using CaseItau.Dominio.Interfaces.Servicos;
+using CaseItau.Dominio.Dto;
 
 namespace CaseItau.API.Controllers
 {
@@ -19,14 +19,14 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Fundo>>> ObterFundos()
+        public async Task<ActionResult<IEnumerable<FundoDto>>> ObterFundos()
         {
             var fundos = _servicoFundo.ObterTodos();
             return Ok(fundos);
         }
 
         [HttpGet("{codigo}", Name = "ObterFundosPorCodigo")]
-        public async Task<ActionResult<IEnumerable<Fundo>>> ObterFundosPorCodigo(string codigo)
+        public async Task<ActionResult<IEnumerable<FundoDto>>> ObterFundosPorCodigo(string codigo)
         {
             var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
 
@@ -37,10 +37,15 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> IncluirFundo([FromBody] Fundo fundo)
+        public async Task<IActionResult> IncluirFundo([FromBody] FundoDto fundo)
         {
             if (fundo == null)
                 return BadRequest("Por favor, informar os dados para adicionar um novo fundo.");
+
+            var fundoExiste =  await _servicoFundo.ObterFundoPorCnpj(fundo.Cnpj);
+
+            if (fundoExiste != null) 
+                return Conflict("O CNPJ informado já possui um fundo registrado.");
 
             await _servicoFundo.IncluirFundo(fundo);
 
@@ -48,7 +53,7 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpPut("{codigo}")]
-        public async Task<IActionResult> AlterarFundo(string codigo, [FromBody] Fundo fundoPesquisa)
+        public async Task<IActionResult> AlterarFundo(string codigo, [FromBody] FundoDto fundoPesquisa)
         {
             if (fundoPesquisa == null || codigo != fundoPesquisa.Codigo)
             {
@@ -60,11 +65,7 @@ namespace CaseItau.API.Controllers
             if (fundo == null)
                 return NotFound("Fundo não encontrado.");
 
-            fundo.Nome = fundoPesquisa.Nome;
-            fundo.Cnpj = fundoPesquisa.Cnpj;
-            fundo.Codigo_Tipo = fundoPesquisa.Codigo_Tipo;
-
-            await _servicoFundo.AlterarFundo(fundo);
+            await _servicoFundo.AlterarFundo(fundoPesquisa);
 
             return Ok("Fundo alterado com sucesso!.");
         }
