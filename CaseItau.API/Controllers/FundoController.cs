@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using CaseItau.API.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
+using CaseItau.Dominio.Servicos;
+using entidade = CaseItau.Dominio.Entidades;
 
 namespace CaseItau.API.Controllers
 {
@@ -13,29 +13,18 @@ namespace CaseItau.API.Controllers
     [ApiController]
     public class FundoController : ControllerBase
     {
-        // GET: api/Fundo
-        [HttpGet]
-        public IEnumerable<Fundo> Get()
+        private readonly ServicoFundo _servicoFundo;
+
+        public FundoController(ServicoFundo servicoFundo)
         {
-            var lista = new List<Fundo>();
-            var con = new SQLiteConnection("Data Source=dbCaseItau.s3db");
-            con.Open();
-            var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT F.*, T.NOME AS NOME_TIPO FROM FUNDO F INNER JOIN TIPO_FUNDO T ON T.CODIGO = F.CODIGO_TIPO";
-            cmd.CommandType = System.Data.CommandType.Text;
-            var reader = cmd.ExecuteReader();
-            while(reader.Read())
-            {
-                var f = new Fundo();
-                f.Codigo = reader[0].ToString();
-                f.Nome = reader[1].ToString();
-                f.Cnpj = reader[2].ToString();
-                f.CodigoTipo = int.Parse(reader[3].ToString());
-                f.Patrimonio = decimal.Parse(reader[4].ToString());
-                f.NomeTipo = reader[5].ToString();                
-                lista.Add(f);
-            }
-            return lista;
+            _servicoFundo = servicoFundo;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<entidade.Fundo>>> ObterFundos()
+        {
+            var fundos = _servicoFundo.ObterTodos();
+            return Ok(fundos);
         }
 
         // GET: api/Fundo/ITAUTESTE01
