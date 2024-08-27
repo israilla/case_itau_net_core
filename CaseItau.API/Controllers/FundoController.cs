@@ -85,9 +85,6 @@ namespace CaseItau.API.Controllers
         [HttpPut("{codigo}/patrimonio")]
         public async Task<IActionResult> MovimentarPatrimonio(string codigo, [FromBody] decimal valor)
         {
-            if (valor < 0)
-                return BadRequest("O valor não pode ser negativo.");
-
             var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
 
             if (fundo == null)
