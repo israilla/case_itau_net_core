@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CaseItau.API.Configuracoes;
-using CaseItau.Dominio.Interfaces;
+using CaseItau.Dominio.Interfaces.Repositorios;
 using CaseItau.Dominio.Servicos;
 using CaseItau.Infraestrutura.Dados.Repositorio;
 using Microsoft.AspNetCore.Builder;
