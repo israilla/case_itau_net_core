@@ -1,5 +1,6 @@
 using CaseItau.API.Configuracoes;
 using CaseItau.Dominio.Interfaces.Repositorios;
+using CaseItau.Dominio.Interfaces.Servicos;
 using CaseItau.Dominio.Servicos;
 using CaseItau.Infraestrutura.Dados.Repositorio;
 using Microsoft.AspNetCore.Builder;
@@ -22,8 +23,7 @@ namespace CaseItau.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRepositorioBaseConfig(Configuration);
-            services.AddScoped<IRepositorioFundo, RepositorioFundo>();
-            services.AddScoped<ServicoFundo>();
+            services.AddInjecaoDependenciaConfig(Configuration);
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
