@@ -23,7 +23,8 @@ namespace CaseItau.Dominio.Servicos
                 Nome = f.Nome,
                 Patrimonio = f.Patrimonio,
                 CodigoTipo = f.Codigo_Tipo,
-                NomeTipo = f.Tipo_Fundo.Nome
+                NomeTipo = f.Tipo_Fundo.Nome,
+                Cnpj = f.Cnpj
             }).ToList();
         }
         public async Task<FundoDto> ObterFundoPorCodigo(string codigo)
@@ -46,7 +47,6 @@ namespace CaseItau.Dominio.Servicos
         {
             var novoFundo = new Fundo
             {
-                Codigo = fundo.Codigo,
                 Nome = fundo.Nome,
                 Patrimonio = fundo.Patrimonio,
                 Codigo_Tipo = fundo.CodigoTipo,
@@ -59,7 +59,6 @@ namespace CaseItau.Dominio.Servicos
         {
             var fundoAlterado = new Fundo
             {
-                Codigo = fundo.Codigo,
                 Nome = fundo.Nome,
                 Patrimonio = fundo.Patrimonio,
                 Codigo_Tipo = fundo.CodigoTipo,
