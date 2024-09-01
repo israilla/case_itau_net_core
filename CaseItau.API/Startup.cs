@@ -22,11 +22,21 @@ namespace CaseItau.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(Configuration["Security:Policy:Cors:Nome"], policy =>
+                {
+                    policy.WithOrigins(Configuration["Security:Policy:Cors:OrigemRequisicao"])
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             services.AddRepositorioBaseConfig(Configuration);
             services.AddInjecaoDependenciaConfig(Configuration);
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.WriteIndented = true;
             });;
 
@@ -42,6 +52,8 @@ namespace CaseItau.API
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCors(Configuration["Security:Policy:Cors:Nome"]);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
