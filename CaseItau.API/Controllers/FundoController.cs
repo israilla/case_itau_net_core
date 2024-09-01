@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CaseItau.Dominio.Interfaces.Servicos;
 using CaseItau.Dominio.Dto;
+using System.Linq;
 
 namespace CaseItau.API.Controllers
 {
@@ -19,9 +19,9 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FundoDto>>> ObterFundos()
+        public async Task<ActionResult<List<FundoDto>>> ObterFundos()
         {
-            var fundos = _servicoFundo.ObterTodos();
+            var fundos = _servicoFundo.ObterTodos().ToList();
             return Ok(fundos);
         }
 
@@ -33,7 +33,7 @@ namespace CaseItau.API.Controllers
             if (fundo != null)
                 return Ok(fundo);
             else
-                throw new Exception("Fundo não encontrado");
+                return BadRequest("Fundo não encontrado");
         }
 
         [HttpPost]
@@ -52,24 +52,23 @@ namespace CaseItau.API.Controllers
             return Ok("Fundo adicionado com sucesso!");
         }
 
-        [HttpPut("{codigo}")]
-        public async Task<IActionResult> AlterarFundo(string codigo, [FromBody] FundoDto fundoPesquisa)
+        [HttpPut]
+        public async Task<IActionResult> AlterarFundo([FromBody] FundoDto fundoPesquisa)
         {
-            if (fundoPesquisa == null || codigo != fundoPesquisa.Codigo)
+            if (fundoPesquisa == null)
             {
                 return BadRequest("Os dados do Fundo estão inválidos.");
             }
 
-            var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
+            var fundo = await _servicoFundo.ObterFundoPorCodigo(fundoPesquisa.Codigo);
 
             if (fundo == null)
-                return NotFound("Fundo não encontrado.");
+                return NotFound();
 
             await _servicoFundo.AlterarFundo(fundoPesquisa);
 
             return Ok("Fundo alterado com sucesso!.");
         }
-
         [HttpDelete("{codigo}")]
         public async Task<IActionResult> ExcluirFundo(string codigo)
         {
@@ -83,7 +82,7 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpPut("{codigo}/patrimonio")]
-        public async Task<IActionResult> MovimentarPatrimonio(string codigo, [FromBody] decimal valor)
+        public async Task<IActionResult> MovimentarPatrimonio(string codigo, decimal valor)
         {
             var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
 
