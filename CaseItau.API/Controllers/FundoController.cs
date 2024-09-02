@@ -82,7 +82,7 @@ namespace CaseItau.API.Controllers
         }
 
         [HttpPut("{codigo}/patrimonio")]
-        public async Task<IActionResult> MovimentarPatrimonio(string codigo, decimal valor)
+        public async Task<IActionResult> MovimentarPatrimonio(string codigo, [FromQuery] decimal valor)
         {
             var fundo = await _servicoFundo.ObterFundoPorCodigo(codigo);
 
