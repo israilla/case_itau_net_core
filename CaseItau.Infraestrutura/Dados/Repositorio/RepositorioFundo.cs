@@ -1,12 +1,14 @@
 ﻿using CaseItau.Dominio.Entidades;
 using CaseItau.Dominio.Interfaces.Repositorios;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace CaseItau.Infraestrutura.Dados.Repositorio
 {
     public class RepositorioFundo : IRepositorioFundo
     {
         private readonly Contexto _contexto;
+        static readonly ThreadLocal<Random> aleatorio = new ThreadLocal<Random>(() => new Random((int)DateTime.Now.Ticks));
 
         public RepositorioFundo(Contexto contexto)
         {
@@ -24,10 +26,11 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
             return _contexto.Fundo
              .AsNoTracking()
              .Include(tp => tp.Tipo_Fundo)
-             .Where(f => f.Codigo == codigo).FirstOrDefault();
+             .Where(f => f.Codigo == codigo.ToUpper()).FirstOrDefault();
         }
         public async Task IncluirFundo(Fundo fundo)
         {
+            fundo.Codigo = GerarCodigoUnico();
             await _contexto.Fundo.AddAsync(fundo);
             await _contexto.SaveChangesAsync();
         }
@@ -60,6 +63,23 @@ namespace CaseItau.Infraestrutura.Dados.Repositorio
             return _contexto.Fundo
              .Include(tp => tp.Tipo_Fundo)
              .Where(f => f.Cnpj == cnpj).FirstOrDefault();
+        }
+        public string GerarValorAlteatorio(int tamanho = 15)
+        {
+            StringBuilder sb = new StringBuilder(tamanho);
+            for (int i = 0; i < tamanho; i++)
+            {
+                sb.Append(aleatorio.Value.Next(0, 10));
+            }
+
+            return sb.ToString();
+        }
+        public string GerarCodigoUnico()
+        {
+            string prefixo = "ITAUF";
+            string valor = GerarValorAlteatorio();
+
+            return $"{prefixo}-{valor:D4}";
         }
     }
 }
